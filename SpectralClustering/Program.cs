@@ -25,7 +25,7 @@ namespace SpectralClustering
         {
             Console.WriteLine("Making matrixes");
             List<Point> lp = new List<Point>();
-            Bitmap img = new Bitmap("coords6.png");
+            Bitmap img = new Bitmap("cluster10.png");
             for (int i = 0; i < img.Width; i++)
             {
                 for (int j = 0; j < img.Height; j++)
