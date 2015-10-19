@@ -42,7 +42,7 @@ namespace SpectralClustering
         static void Main(string[] args)
         {
             Control.UseNativeMKL();
-            List<string> filenames = new List<string> { "coords2.png", "coords4.png", "coords6.png", "coords8.png" };
+            List<string> filenames = new List<string> {"coords2.png", "coords8.png", "coords9.png" };
             foreach(var f in filenames)
             {
                 List<Point> lp = GetPoints(f);
@@ -62,12 +62,12 @@ namespace SpectralClustering
 
             int index = 0;
             Random r = new Random();
-            var colors = Enumerable.Range(0, 360).Where((x, i) => i % 40 == 0).ToList();
+            var colors = Enumerable.Range(0, 360).Where((x, i) => i % 50 == 0).ToList();
             foreach (var community in lp)
             {
-                //var value = r.Next(0, 360);
-                var value = colors[index];
-                var hsl = new Hsl { H = value, S = 100, L = 50 };
+                var value = r.Next(0, 360);
+                //var value = colors[index];
+                var hsl = new Hsl { H = value, S = 80 + r.Next(0,20), L = 40 + r.Next(0, 20) };
                 var rgb = hsl.To<Rgb>();
                 Color c = Color.FromArgb(255, (int)rgb.R, (int)rgb.G, (int)rgb.B);
                 foreach (var v in community)
@@ -106,8 +106,7 @@ namespace SpectralClustering
             List<List<Point>> allCommunities = new List<List<Point>>();
             List<Point> eigenDecomposed = SpectralClustering(lp, similarityMeasure);
             List<List<Point>> cutCommunities = new List<List<Point>>();
-            var lg = LargestGap(eigenDecomposed);
-            cutCommunities = Cut(eigenDecomposed);
+            cutCommunities = Cut(eigenDecomposed, 0);
             allCommunities.AddRange(cutCommunities);
             //foreach (var v in cutCommunities)
             //{
@@ -154,52 +153,108 @@ namespace SpectralClustering
             Vector<double> dVector = A.RowAbsoluteSums();
             Matrix<double> D = Matrix<double>.Build.DenseOfDiagonalVector(dVector);
             Matrix<double> L = D - A;
+            //Matrix<double> L = Matrix<double>.Build.DenseIdentity(D.RowCount, D.ColumnCount) - D.Inverse() * A;
             Console.WriteLine("Finding EVD.");
             Evd<double> evd = L.Evd();
             Vector<double> eigenVector = evd.EigenVectors.Column(1);
-            /*Chart c = new Chart();
+            Chart c = new Chart();
             c.ChartAreas.Add("EigenVectors");
 
             c.Series.Add("bla");
             c.Series["bla"].ChartType = SeriesChartType.Point;
             c.Series["bla"].Color = Color.LightGreen;
             double xIndex = 0;
-            foreach(var p in evd.EigenVectors.Column(1).OrderBy(x => x))
+            foreach(var p in evd.EigenVectors.Column(2).OrderBy(x => x).ToList())
             {
                 c.Series["bla"].Points.AddXY(xIndex++, p);
             }
             
-            c.SaveImage("Blah.png", ChartImageFormat.Png);*/
+            c.SaveImage("Blah.png", ChartImageFormat.Png);
             Console.WriteLine("Adding eigen vector value to users.");
             for (int ev = 0; ev < eigenVector.Count; ev++)
             {
                 //lp[ev].Eigen.Add(eigenVector[ev]);
-                lp[ev].Eigen = eigenVector[ev];
-                //lp[ev].Eigen.AddRange(evd.EigenVectors.Row(ev).Skip(1).Take(5));
+                //lp[ev].Eigen = eigenVector[ev];
+                lp[ev].Eigen.AddRange(evd.EigenVectors.Row(ev).Skip(1).Take(10));
             }
-            var sortedItemList = lp.OrderBy(x => x.Eigen).ToList();
+            List<double> eigengaps = new List<double>();
+            //var eigenVector2 = eigenVector.OrderBy(x => x).ToList();
+            var eigenValues = evd.EigenValues.Select(x => x.Real).ToList();
+            var tmp = EigengapHeuristic(eigenVector.OrderBy(x => x).ToList());
+            var sortedItemList = lp.OrderBy(x => x.Eigen[0]).ToList();
+            var tmp2 = LargestGap(sortedItemList, 0);
             return sortedItemList;
         }
 
-        public static List<List<Point>> Cut(List<Point> sortedItemList)
+        public static List<Tuple<int, double>> EigengapHeuristic(List<double> eigenvalues)
         {
-            var lg = LargestGap(sortedItemList);
+            List<Tuple<int, double>> gaps = new List<Tuple<int, double>>();
+            //int index = 0;
+            //double largestGap = 0.0;
+            for (int i = 1; i < eigenvalues.Count; i++)
+            {
+                var gap = Math.Abs(eigenvalues[i] - eigenvalues[i - 1]);
+                gaps.Add(new Tuple<int, double>(i, gap));
+                /*if (gap > largestGap)
+                {
+                    index = i;
+                    largestGap = gap;
+                }*/
+            }
+            return gaps.OrderByDescending(x => x.Item2).ToList();
+        }
 
-            Console.WriteLine("Making new lists.");
+        public static List<List<Point>> Cut(List<Point> sortedItemList, int eigenIndex)
+        {
+            var lg = LargestGap(sortedItemList, eigenIndex);
+            var lgs = LargestGaps(sortedItemList, eigenIndex).OrderBy(x => x).ToList();
+            lgs.Insert(0, 0);
+            lgs.Add(sortedItemList.Count - 1);
+
+            var result = new List<List<Point>>();
+            for(int i = 0; i < lgs.Count-1; i++)
+            {
+                Console.WriteLine("Taking {0} to {1}", i, i + 1);
+                var tmp = sortedItemList.Skip(lgs[i]).Take(lgs[i + 1]).ToList();
+                result.Add(tmp);
+            }
+            /*Console.WriteLine("Making new lists.");
             List<Point> ListLeft = sortedItemList.Take(lg.Item1 + 1).ToList();
             List<Point> ListRight = sortedItemList.Skip(lg.Item1 + 1).ToList();
             var res= new List<List<Point>> { ListLeft, ListRight };
-            return res;
+            return res;*/
+            return result;
         }
 
-        public static Tuple<int, double> LargestGap(List<Point> sortedItemList)
+        public static List<int> LargestGaps(List<Point> sortedItemList, int eigenIndex)
+        {
+            int index = 0;
+            double largestGap = 0.0;
+            List<Tuple<int, double>> gaps = new List<Tuple<int, double>>();
+            for (int i = 1; i < sortedItemList.Count - 1; i++)
+            {
+                var gap = Math.Abs(sortedItemList[i].Eigen[eigenIndex] - sortedItemList[i - 1].Eigen[eigenIndex]);
+                gaps.Add(new Tuple<int, double>(i, gap));
+                if (gap > largestGap)
+                {
+                    index = i;
+                    largestGap = gap;
+                }
+            }
+            double epsilon = 2.50948562060746E-7;
+            gaps = gaps.OrderByDescending(x => x.Item2).Where(x => x.Item2 > epsilon).ToList();
+            return gaps.Select(x => x.Item1).ToList();
+            //return new Tuple<int, double>(index, largestGap);
+        }
+
+        public static Tuple<int, double> LargestGap(List<Point> sortedItemList, int eigenIndex)
         {
             int index = 0;
             double largestGap = 0.0;
             //var tmp = sortedItemList.OrderBy(x => x.Eigen[eigenIndex]).ToList();
             for (int i = 0; i < sortedItemList.Count - 1; i++)
             {
-                var gap = Math.Abs(sortedItemList[i].Eigen - sortedItemList[i + 1].Eigen);
+                var gap = Math.Abs(sortedItemList[i].Eigen[eigenIndex] - sortedItemList[i + 1].Eigen[eigenIndex]);
                 if (gap > largestGap)
                 {
                     index = i;
