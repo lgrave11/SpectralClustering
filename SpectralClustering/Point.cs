@@ -12,13 +12,13 @@ namespace SpectralClustering
         public int y;
         public int matrix_x;
         public int matrix_y;
-        public List<double> Eigen;
+        public double Eigen;
         public double clusternum;
         public Point(int x, int y)
         {
             this.x = x;
             this.y = y;
-            Eigen = new List<double>();
+            Eigen = 0f;
             clusternum = -1f;
         }
 
