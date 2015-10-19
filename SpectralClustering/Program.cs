@@ -62,13 +62,14 @@ namespace SpectralClustering
 
             int index = 0;
             Random r = new Random();
-            var colors = Enumerable.Range(0, 360).Where((x, i) => i % 50 == 0).ToList();
+            var colors = Enumerable.Range(0, 360).Where((x, i) => i % 30 == 0).ToList();
+            var colors2 = colors.Select(x => new Hsl { H = x, S = 100, L = 50 }).ToList();
+            colors2.Insert(0, new Hsl { H = 0, S = 100, L = 0 });
             foreach (var community in lp)
             {
-                var value = r.Next(0, 360);
-                //var value = colors[index];
-                var hsl = new Hsl { H = value, S = 80 + r.Next(0,20), L = 40 + r.Next(0, 20) };
-                var rgb = hsl.To<Rgb>();
+                //var value = r.Next(0, 360);
+                var value = colors2[index];
+                var rgb = value.To<Rgb>();
                 Color c = Color.FromArgb(255, (int)rgb.R, (int)rgb.G, (int)rgb.B);
                 foreach (var v in community)
                 {
@@ -214,9 +215,20 @@ namespace SpectralClustering
             var result = new List<List<Point>>();
             for(int i = 0; i < lgs.Count-1; i++)
             {
-                Console.WriteLine("Taking {0} to {1}", i, i + 1);
-                var tmp = sortedItemList.Skip(lgs[i]).Take(lgs[i + 1]).ToList();
-                result.Add(tmp);
+                Console.WriteLine("Taking {0} to {1}", lgs[i], lgs[i + 1]);
+                List<Point> tmp = new List<Point>();
+                
+                int start = lgs[i];
+                int end = lgs[i + 1];
+                var tmp2 = sortedItemList.Skip(lgs[i]).Take(end - start+1).ToList();
+                /*int current = lgs[i];
+                foreach (var v in sortedItemList.Skip(lgs[i]))
+                {
+                    tmp.Add(sortedItemList[current++]);
+                    if (current == end) break;
+                }*/
+                //var tmp = sortedItemList.Skip(lgs[i]).Take(lgs[i + 1]).ToList();
+                result.Add(tmp2);
             }
             /*Console.WriteLine("Making new lists.");
             List<Point> ListLeft = sortedItemList.Take(lg.Item1 + 1).ToList();
