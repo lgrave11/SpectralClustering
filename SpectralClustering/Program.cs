@@ -42,15 +42,18 @@ namespace SpectralClustering
         static void Main(string[] args)
         {
             Control.UseNativeMKL();
-            List<string> filenames = new List<string> {"coords2.png", "coords8.png", "coords9.png" };
+            List<string> filenames = new List<string> {"coords9.png"};
             foreach(var f in filenames)
             {
                 List<Point> lp = GetPoints(f);
-                Console.WriteLine("Producing clusters for {0}", f);
-                List<List<Point>> communities = FindCommunities(lp,RBFKernel);
-                DrawCommunities(communities, f, "RBFKernelEuclidean");
-                /*List<List<Point>> communities2 = FindCommunities(lp, RBFKernel2);
-                DrawCommunities(communities2, f, "RBFKernelManhattan");*/
+                DBSCAN dbscan = new DBSCAN(lp, 2, 10);
+                dbscan.Run();
+                DrawCommunities(dbscan.clusters, f, "dbscan");
+                //Console.WriteLine("Producing clusters for {0}", f);
+                //List<List<Point>> communities = FindCommunities(lp,RBFKernel);
+                //DrawCommunities(communities, f, "RBFKernelEuclidean");
+                ///*List<List<Point>> communities2 = FindCommunities(lp, RBFKernel2);
+                //DrawCommunities(communities2, f, "RBFKernelManhattan");*/
             }
             
         }
@@ -67,8 +70,8 @@ namespace SpectralClustering
             colors2.Insert(0, new Hsl { H = 0, S = 100, L = 0 });
             foreach (var community in lp)
             {
-                //var value = r.Next(0, 360);
-                var value = colors2[index];
+                var value = new Hsl { H = r.Next(0, 360), S = r.Next(50, 100), L = r.Next(40, 60) };
+                //var value = colors2[index];
                 var rgb = value.To<Rgb>();
                 Color c = Color.FromArgb(255, (int)rgb.R, (int)rgb.G, (int)rgb.B);
                 foreach (var v in community)
@@ -107,7 +110,7 @@ namespace SpectralClustering
             List<List<Point>> allCommunities = new List<List<Point>>();
             List<Point> eigenDecomposed = SpectralClustering(lp, similarityMeasure);
             List<List<Point>> cutCommunities = new List<List<Point>>();
-            cutCommunities = Cut(eigenDecomposed, 0);
+            cutCommunities = Cut(eigenDecomposed);
             allCommunities.AddRange(cutCommunities);
             //foreach (var v in cutCommunities)
             //{
@@ -205,8 +208,9 @@ namespace SpectralClustering
             return gaps.OrderByDescending(x => x.Item2).ToList();
         }
 
-        public static List<List<Point>> Cut(List<Point> sortedItemList, int eigenIndex)
+        public static List<List<Point>> Cut(List<Point> sortedItemList)
         {
+            int eigenIndex = 0;
             var lg = LargestGap(sortedItemList, eigenIndex);
             var lgs = LargestGaps(sortedItemList, eigenIndex).OrderBy(x => x).ToList();
             lgs.Insert(0, 0);
