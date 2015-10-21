@@ -18,6 +18,7 @@ namespace SpectralClustering
         public int clusterId;
         public bool visited;
         public bool noise;
+        public bool clustered;
         public Point(double x, double y)
         {
             this.x = x;
@@ -26,6 +27,7 @@ namespace SpectralClustering
             clusternum = -1f;
             visited = false;
             noise = false;
+            clustered = false;
             clusterId = -1;
         }
 

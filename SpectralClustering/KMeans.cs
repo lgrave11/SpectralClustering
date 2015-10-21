@@ -21,16 +21,6 @@ namespace SpectralClustering
         public List<Point> meansNew = new List<Point>();
         bool whilecondition;
 
-        public void Cluster()
-        {
-            double minDist, tempDist;
-            Point tempPoint = new Point(0, 0);
-            int index = 0;
-
-            
-
-        }
-
         public KMeans(List<Point> points, int K)
         {
             this.points = points;

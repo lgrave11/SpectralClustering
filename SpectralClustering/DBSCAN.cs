@@ -13,78 +13,120 @@ namespace SpectralClustering
         double MinPts;
         List<Point> Points;
         int C = 0;
+        Dictionary<Point, List<Point>> EpsNeighborhoods;
         public DBSCAN(List<Point> Points, double Eps, double MinPts)
         {
             this.Points = Points;
             this.Eps = Eps;
             this.MinPts = MinPts;
             this.clusters = new List<List<Point>>();
+            this.EpsNeighborhoods = new Dictionary<Point, List<Point>>();
+            PrecalculateEpsNeighborhoods();
+        }
+
+        public void PrecalculateEpsNeighborhoods()
+        {
+            foreach(var p in this.Points)
+            {
+                List<Point> epsNeighborhood = new List<Point>();
+                foreach (var p2 in this.Points)
+                {
+                    if (p == p2) continue;
+                    if (p.dist(p2) <= this.Eps)
+                    {
+                        epsNeighborhood.Add(p2);
+                    }
+                }
+                this.EpsNeighborhoods.Add(p, epsNeighborhood);
+            }
         }
 
         public void Run()
         {
+
             if (this.Points == null) return;
             this.Eps *= this.Eps;
             foreach (var p in this.Points)
             {
-                p.visited = true;
-                if(!(p.clusterId >= 1))
+                if(!p.visited)
                 {
-                    expandCluster(p);
-                    C++;
+                    p.visited = true;
+                    var NeighborPts = EpsNeighborhood(p);
+                    if (NeighborPts.Count < this.MinPts)
+                    {
+                        p.noise = true;
+                    }
+                    else
+                    {
+                        List<Point> cluster = expandCluster(p);
+                        clusters.Add(cluster);
+                    }
                 }
+                
             }
 
-            clusters = this.Points.Where(x => x.clusterId >= 1).GroupBy(x => x.clusterId).Select(grp => grp.ToList()).ToList();
+            //clusters = this.Points.Where(x => x.clusterId >= 1).GroupBy(x => x.clusterId).Select(grp => grp.ToList()).ToList();
 
         }
 
-        public bool expandCluster(Point p)
+        public List<Point> expandCluster(Point p)
         {
+            List<Point> cluster = new List<Point>();
             List<Point> neighborPts = EpsNeighborhood(p);
-            if(neighborPts.Count < this.Eps)
+            cluster.Add(p);
+            p.clustered = true;
+            while (neighborPts.Count > 0)
             {
-                p.clusterId = (int)Cluster.Noise; // Noise.
-                return true;
-            }
-            else
-            {
-                p.clusterId = C;
-                foreach(var np in neighborPts) np.clusterId = C;
-                while(neighborPts.Count > 0)
+                Point curr = neighborPts[0];
+                List<Point> neighborPts2 = EpsNeighborhood(curr);
+                if (!curr.visited)
                 {
-                    Point curr = neighborPts[0];
-                    List<Point> neighborPts2 = EpsNeighborhood(curr);
-                    if (neighborPts2.Count >= this.MinPts)
+                    curr.visited = true;
+                    
+                    if(neighborPts2.Count >= MinPts)
                     {
                         foreach(var p3 in neighborPts2)
                         {
-                            if(p3.clusterId == (int)Cluster.Unclassified || p3.clusterId == (int)Cluster.Noise)
-                            {
-                                if (p3.clusterId == -1) neighborPts.Add(p3);
-                                p3.clusterId = C;
-                            }
+                            neighborPts.Add(p3);
                         }
                     }
-                    neighborPts.Remove(curr);
                 }
-                return true;
+                if(!curr.clustered)
+                {
+                    cluster.Add(curr);
+                    curr.clustered = true;
+                }
+                /*if (neighborPts2.Count >= this.MinPts)
+                {
+                    foreach(var p3 in neighborPts2)
+                    {
+                        //var alreadyclustered = !AlreadyClustered(p3);
+                        if (!p3.visited || p3.noise)
+                        {
+                            if (!p3.visited) neighborPts.Add(p3);
+                            cluster.Add(p3);
+                            p3.visited = true;
+                        }
+                    }
+                }*/
+                neighborPts.Remove(curr);
             }
+            return cluster;
         }
 
         public List<Point> EpsNeighborhood(Point p)
         {
-            List<Point> epsNeighborhood = new List<Point>();
-            foreach (var p2 in this.Points)
+            return this.EpsNeighborhoods[p];
+        }
+
+        public bool AlreadyClustered(Point p)
+        {
+            foreach(var cluster in this.clusters)
             {
-                if (p == p2) continue;
-                if(p.dist(p2) <= this.Eps) {
-                    epsNeighborhood.Add(p2);
-                }
+                if (cluster.Contains(p)) return true;
             }
-            return epsNeighborhood;
+            return false;
         }
     }
-
-    
 }
+

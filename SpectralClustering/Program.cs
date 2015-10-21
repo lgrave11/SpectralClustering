@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using ColorMine.ColorSpaces;
 using System.Windows.Forms.DataVisualization.Charting;
+using System.Diagnostics;
 
 namespace SpectralClustering
 {
@@ -42,22 +43,47 @@ namespace SpectralClustering
         static void Main(string[] args)
         {
             Control.UseNativeMKL();
-            List<string> filenames = new List<string> {"coords1.png", "coords2.png", "coords3.png", "coords4.png", "coords5.png", "coords6.png", "coords8.png", "coords9.png", "cluster10.png", "coords11.png" };
-            foreach(var f in filenames)
+            List<string> filenames = new List<string> { "coords12.png", "coords2.png", "coords3.png", "coords4.png", "coords5.png", "coords6.png", "coords8.png", "coords9.png", "cluster10.png", "coords11.png" };
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            foreach (var f in filenames)
             {
                 List<Point> lp = GetPoints(f);
-                KMeans kmeans = new KMeans(lp, 3);
-                DrawCommunities(kmeans.clusters, f, "kmeans");
-                //DBSCAN dbscan = new DBSCAN(lp, 2, 3);
-                //dbscan.Run();
-                //DrawCommunities(dbscan.clusters, f, "dbscan");
+                //KMeans kmeans = new KMeans(lp, 3);
+                //DrawCommunities(kmeans.clusters, f, "kmeans");
+                DBSCAN dbscan = new DBSCAN(lp, 3, 3);
+                dbscan.Run();
+                DrawCommunities(dbscan.clusters, f, "dbscan");
                 //Console.WriteLine("Producing clusters for {0}", f);
                 //List<List<Point>> communities = FindCommunities(lp,RBFKernel);
                 //DrawCommunities(communities, f, "RBFKernelEuclidean");
                 ///*List<List<Point>> communities2 = FindCommunities(lp, RBFKernel2);
                 //DrawCommunities(communities2, f, "RBFKernelManhattan");*/
             }
-            
+            sw.Stop();
+            TimeSpan elapsedTime = sw.Elapsed;
+            Console.WriteLine(elapsedTime);
+
+            sw = new Stopwatch();
+            sw.Start();
+            foreach (var f in filenames)
+            {
+                List<Point> lp = GetPoints(f);
+                //KMeans kmeans = new KMeans(lp, 3);
+                //DrawCommunities(kmeans.clusters, f, "kmeans");
+                DBSCANOld dbscan = new DBSCANOld(lp, 3, 3);
+                dbscan.Run();
+                DrawCommunities(dbscan.clusters, f, "dbscan");
+                //Console.WriteLine("Producing clusters for {0}", f);
+                //List<List<Point>> communities = FindCommunities(lp,RBFKernel);
+                //DrawCommunities(communities, f, "RBFKernelEuclidean");
+                ///*List<List<Point>> communities2 = FindCommunities(lp, RBFKernel2);
+                //DrawCommunities(communities2, f, "RBFKernelManhattan");*/
+            }
+            sw.Stop();
+            elapsedTime = sw.Elapsed;
+            Console.WriteLine(elapsedTime);
+
         }
 
         public static void DrawCommunities(List<List<Point>> lp, string filename, string prefix)
