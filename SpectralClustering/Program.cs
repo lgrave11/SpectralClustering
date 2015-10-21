@@ -42,13 +42,15 @@ namespace SpectralClustering
         static void Main(string[] args)
         {
             Control.UseNativeMKL();
-            List<string> filenames = new List<string> {"coords9.png"};
+            List<string> filenames = new List<string> {"coords1.png", "coords2.png", "coords3.png", "coords4.png", "coords5.png", "coords6.png", "coords8.png", "coords9.png", "cluster10.png", "coords11.png" };
             foreach(var f in filenames)
             {
                 List<Point> lp = GetPoints(f);
-                DBSCAN dbscan = new DBSCAN(lp, 2, 10);
-                dbscan.Run();
-                DrawCommunities(dbscan.clusters, f, "dbscan");
+                KMeans kmeans = new KMeans(lp, 3);
+                DrawCommunities(kmeans.clusters, f, "kmeans");
+                //DBSCAN dbscan = new DBSCAN(lp, 2, 3);
+                //dbscan.Run();
+                //DrawCommunities(dbscan.clusters, f, "dbscan");
                 //Console.WriteLine("Producing clusters for {0}", f);
                 //List<List<Point>> communities = FindCommunities(lp,RBFKernel);
                 //DrawCommunities(communities, f, "RBFKernelEuclidean");
@@ -76,7 +78,7 @@ namespace SpectralClustering
                 Color c = Color.FromArgb(255, (int)rgb.R, (int)rgb.G, (int)rgb.B);
                 foreach (var v in community)
                 {
-                    bm.SetPixel(v.x, v.y, c);
+                    bm.SetPixel((int)v.x, (int)v.y, c);
                 }
                 index += 1;
             }

@@ -8,8 +8,8 @@ namespace SpectralClustering
 {
     public class Point : Object
     {
-        public int x;
-        public int y;
+        public double x;
+        public double y;
         public int matrix_x;
         public int matrix_y;
         public List<double> Eigen;
@@ -17,7 +17,7 @@ namespace SpectralClustering
         public int clusterId;
         public bool visited;
         public bool noise;
-        public Point(int x, int y)
+        public Point(double x, double y)
         {
             this.x = x;
             this.y = y;
@@ -54,6 +54,25 @@ namespace SpectralClustering
 
             // Return true if the fields match:
             return (this.x == p2.x) && (this.y == p2.y);
+        }
+
+        public int CompareTo(object obj)
+        {
+            Point p1 = (Point)obj;
+
+            if (p1.x > x)
+                return 1;
+            else if (p1.x == x)
+            {
+                if (p1.y > y)
+                    return 1;
+                else if (p1.y == y)
+                    return 0;
+                else
+                    return -1;
+            }
+            else
+                return -1;
         }
 
     }

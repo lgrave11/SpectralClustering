@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DBSCAN.cs" />
+    <Compile Include="KMeans.cs" />
     <Compile Include="LoadPoints.cs" />
     <Compile Include="Point.cs" />
     <Compile Include="Program.cs" />

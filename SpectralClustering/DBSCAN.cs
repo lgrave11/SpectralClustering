@@ -34,7 +34,9 @@ namespace SpectralClustering
                     C++;
                 }
             }
+
             clusters = this.Points.Where(x => x.clusterId >= 1).GroupBy(x => x.clusterId).Select(grp => grp.ToList()).ToList();
+
         }
 
         public bool expandCluster(Point p)
