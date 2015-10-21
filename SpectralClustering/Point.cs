@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace SpectralClustering
 {
+    enum Cluster { Unclassified = -1, Noise}
     public class Point : Object
     {
         public double x;

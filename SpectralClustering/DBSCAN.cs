@@ -41,10 +41,10 @@ namespace SpectralClustering
 
         public bool expandCluster(Point p)
         {
-            List<Point> neighborPts = regionQuery(p);
+            List<Point> neighborPts = EpsNeighborhood(p);
             if(neighborPts.Count < this.Eps)
             {
-                p.clusterId = 0; // Noise.
+                p.clusterId = (int)Cluster.Noise; // Noise.
                 return true;
             }
             else
@@ -54,12 +54,12 @@ namespace SpectralClustering
                 while(neighborPts.Count > 0)
                 {
                     Point curr = neighborPts[0];
-                    List<Point> neighborPts2 = regionQuery(curr);
+                    List<Point> neighborPts2 = EpsNeighborhood(curr);
                     if (neighborPts2.Count >= this.MinPts)
                     {
                         foreach(var p3 in neighborPts2)
                         {
-                            if(p3.clusterId == -1 || p3.clusterId == 0)
+                            if(p3.clusterId == (int)Cluster.Unclassified || p3.clusterId == (int)Cluster.Noise)
                             {
                                 if (p3.clusterId == -1) neighborPts.Add(p3);
                                 p3.clusterId = C;
@@ -72,7 +72,7 @@ namespace SpectralClustering
             }
         }
 
-        public List<Point> regionQuery(Point p)
+        public List<Point> EpsNeighborhood(Point p)
         {
             List<Point> epsNeighborhood = new List<Point>();
             foreach (var p2 in this.Points)
