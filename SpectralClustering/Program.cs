@@ -43,7 +43,7 @@ namespace SpectralClustering
         static void Main(string[] args)
         {
             Control.UseNativeMKL();
-            List<string> filenames = new List<string> { "coords12.png", "coords2.png", "coords3.png", "coords4.png", "coords5.png", "coords6.png", "coords8.png", "coords9.png", "cluster10.png", "coords11.png" };
+            List<string> filenames = new List<string> {"coords9.png", "coords2.png", "coords4.png", "coords6.png", "coords8.png" };
             Stopwatch sw = new Stopwatch();
             sw.Start();
             foreach (var f in filenames)
@@ -51,39 +51,18 @@ namespace SpectralClustering
                 List<Point> lp = GetPoints(f);
                 //KMeans kmeans = new KMeans(lp, 3);
                 //DrawCommunities(kmeans.clusters, f, "kmeans");
-                DBSCAN dbscan = new DBSCAN(lp, 3, 3);
-                dbscan.Run();
-                DrawCommunities(dbscan.clusters, f, "dbscan");
+                //DBSCAN dbscan = new DBSCAN(lp, 3, 3);
+                //dbscan.Run();
+                //DrawCommunities(dbscan.clusters, f, "dbscan");
                 //Console.WriteLine("Producing clusters for {0}", f);
-                //List<List<Point>> communities = FindCommunities(lp,RBFKernel);
-                //DrawCommunities(communities, f, "RBFKernelEuclidean");
+                List<List<Point>> communities = FindCommunities(lp,RBFKernel);
+                DrawCommunities(communities, f, "RBFKernelEuclidean");
                 ///*List<List<Point>> communities2 = FindCommunities(lp, RBFKernel2);
                 //DrawCommunities(communities2, f, "RBFKernelManhattan");*/
             }
             sw.Stop();
             TimeSpan elapsedTime = sw.Elapsed;
             Console.WriteLine(elapsedTime);
-
-            sw = new Stopwatch();
-            sw.Start();
-            foreach (var f in filenames)
-            {
-                List<Point> lp = GetPoints(f);
-                //KMeans kmeans = new KMeans(lp, 3);
-                //DrawCommunities(kmeans.clusters, f, "kmeans");
-                DBSCANOld dbscan = new DBSCANOld(lp, 3, 3);
-                dbscan.Run();
-                DrawCommunities(dbscan.clusters, f, "dbscan");
-                //Console.WriteLine("Producing clusters for {0}", f);
-                //List<List<Point>> communities = FindCommunities(lp,RBFKernel);
-                //DrawCommunities(communities, f, "RBFKernelEuclidean");
-                ///*List<List<Point>> communities2 = FindCommunities(lp, RBFKernel2);
-                //DrawCommunities(communities2, f, "RBFKernelManhattan");*/
-            }
-            sw.Stop();
-            elapsedTime = sw.Elapsed;
-            Console.WriteLine(elapsedTime);
-
         }
 
         public static void DrawCommunities(List<List<Point>> lp, string filename, string prefix)
@@ -133,20 +112,13 @@ namespace SpectralClustering
             return lp;
         }
 
-        public static List<List<Point>> FindCommunities(List<Point> lp, Func<Point, Point, double> similarityMeasure)
+        public static List<List<Point>> FindCommunities(List<Point> lp, Func<Point, Point, double> similarityMeasure, int maxClusters=10)
         {
             List<List<Point>> allCommunities = new List<List<Point>>();
             List<Point> eigenDecomposed = SpectralClustering(lp, similarityMeasure);
             List<List<Point>> cutCommunities = new List<List<Point>>();
-            cutCommunities = Cut(eigenDecomposed);
+            cutCommunities = Cut(eigenDecomposed, maxClusters);
             allCommunities.AddRange(cutCommunities);
-            //foreach (var v in cutCommunities)
-            //{
-            //    List<List<Point>> subCommunities = new List<List<Point>>();
-            //    var eig = SpectralClustering(v, similarityMeasure);
-            //    allCommunities.AddRange(Cut(eig));
-            //
-            //}
             return allCommunities;
         }
 
@@ -195,13 +167,13 @@ namespace SpectralClustering
             c.Series.Add("bla");
             c.Series["bla"].ChartType = SeriesChartType.Point;
             c.Series["bla"].Color = Color.LightGreen;
-            double xIndex = 0;
+            /*double xIndex = 0;
             foreach(var p in evd.EigenVectors.Column(2).OrderBy(x => x).ToList())
             {
                 c.Series["bla"].Points.AddXY(xIndex++, p);
             }
             
-            c.SaveImage("Blah.png", ChartImageFormat.Png);
+            c.SaveImage("Blah.png", ChartImageFormat.Png);*/
             Console.WriteLine("Adding eigen vector value to users.");
             for (int ev = 0; ev < eigenVector.Count; ev++)
             {
@@ -236,13 +208,14 @@ namespace SpectralClustering
             return gaps.OrderByDescending(x => x.Item2).ToList();
         }
 
-        public static List<List<Point>> Cut(List<Point> sortedItemList)
+        public static List<List<Point>> Cut(List<Point> sortedItemList, int maxClusters)
         {
             int eigenIndex = 0;
             var lg = LargestGap(sortedItemList, eigenIndex);
-            var lgs = LargestGaps(sortedItemList, eigenIndex).OrderBy(x => x).ToList();
-            lgs.Insert(0, 0);
-            lgs.Add(sortedItemList.Count - 1);
+            var lgs = LargestGaps(sortedItemList, eigenIndex).ToList();
+            lgs = lgs.Take(maxClusters-1).OrderBy(x => x.Item1).ToList();
+            lgs.Insert(0, new Tuple<int, double>(0, 0));
+            lgs.Add(new Tuple<int, double>(sortedItemList.Count - 1, 0));
 
             var result = new List<List<Point>>();
             for(int i = 0; i < lgs.Count-1; i++)
@@ -250,9 +223,9 @@ namespace SpectralClustering
                 Console.WriteLine("Taking {0} to {1}", lgs[i], lgs[i + 1]);
                 List<Point> tmp = new List<Point>();
                 
-                int start = lgs[i];
-                int end = lgs[i + 1];
-                var tmp2 = sortedItemList.Skip(lgs[i]).Take(end - start+1).ToList();
+                int start = lgs[i].Item1;
+                int end = lgs[i + 1].Item1;
+                var tmp2 = sortedItemList.Skip(lgs[i].Item1).Take(end - start+1).ToList();
                 /*int current = lgs[i];
                 foreach (var v in sortedItemList.Skip(lgs[i]))
                 {
@@ -270,7 +243,7 @@ namespace SpectralClustering
             return result;
         }
 
-        public static List<int> LargestGaps(List<Point> sortedItemList, int eigenIndex)
+        public static List<Tuple<int, double>> LargestGaps(List<Point> sortedItemList, int eigenIndex)
         {
             int index = 0;
             double largestGap = 0.0;
@@ -287,7 +260,8 @@ namespace SpectralClustering
             }
             double epsilon = 2.50948562060746E-7;
             gaps = gaps.OrderByDescending(x => x.Item2).Where(x => x.Item2 > epsilon).ToList();
-            return gaps.Select(x => x.Item1).ToList();
+            return gaps;
+            //return gaps.Select(x => x.Item1).ToList();
             //return new Tuple<int, double>(index, largestGap);
         }
 
