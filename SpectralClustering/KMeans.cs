@@ -7,90 +7,94 @@ using MathNet.Numerics.LinearAlgebra;
 
 namespace SpectralClustering
 {
+
     public class KMeans
     {
         public List<List<Point>> clusters;
         public List<Point> points;
         public int K;
         public int iteration = 0;
-        //public Matrix<double> A;
-        int maxX;
-        int maxY;
-        public List<List<Point>> clusterLists = new List<List<Point>>();
-        public List<Point> means = new List<Point>();
-        public List<Point> meansNew = new List<Point>();
-        bool whilecondition;
+        public List<Point> centroids = new List<Point>();
+        public Dictionary<Point, int> pointToCluster;
+
+        public double distanceToCluster(Point p, Point centroid)
+        {
+            return p.dist(centroid);
+        }
+
+        public int minDistanceToClusters(Point p)
+        {
+            var d = new Dictionary<int, double>();
+            for (int i = 0; i < this.K; i++)
+            {
+                d.Add(i, distanceToCluster(p, this.centroids[i]));
+            }
+            int mindist = d.OrderBy(x => x.Value).Select(x => x.Key).ToList()[0];
+            return mindist;
+        }
+
+        public void updateCentroids()
+        {
+            for(int i = 0; i < K; i++)
+            {
+                var clus = pointToCluster.Where(x => x.Value == i).Select(x => x.Key).ToList();
+                this.centroids[i] = new Point(clus.Average(a => a.x), clus.Average(a => a.y));
+            }
+        }
 
         public KMeans(List<Point> points, int K)
         {
             this.points = points;
             this.K = K;
-            this.clusters = new List<List<Point>>();
-            maxX = points.Select(p => (int)p.x).Max();
-            maxY = points.Select(p => (int)p.y).Max();
+            this.pointToCluster = new Dictionary<Point, int>();
 
             Random r = new Random();
-
+            var randoms = points.OrderBy(x => r.Next()).Take(K).ToList();
             for (int i = 0; i < K; i++)
             {
-                clusters.Add(new List<Point>());
-                var mean = new Point(r.Next(0, maxX), r.Next(0, maxY));
-                means.Add(mean);
+                pointToCluster.Add(randoms[i], i);
+                this.centroids.Add(randoms[i]);
             }
 
-            double minDist, tempDist;
-            Point tempPoint = new Point(0, 0);
-            int index = 0;
+            foreach(var p in this.points)
+            {
+                int mindist = minDistanceToClusters(p);
+                if(!pointToCluster.ContainsKey(p))
+                {
+                    pointToCluster.Add(p, mindist);
+                }
+                
+            }
 
+            bool changed = false;
             do
             {
-                whilecondition = true; //condition set to true for while loop to run, and will be checked during the loop, to check if another iteration is neccesary
-
-                /*Lists is getting cleared for new calculation of cluster*/
-                foreach (List<Point> someList in clusters)
+                changed = false;
+                updateCentroids();
+                List<List<Point>> newClusters = new List<List<Point>>();
+                for(int i = 0; i < this.K; i++)
                 {
-                    someList.Clear();
-                }
-                meansNew.Clear();
-                means.ForEach((item) => { meansNew.Add(new Point(item.x, item.y)); });
-
-                /*Points gets assigned to clusterLists to the clusterPoint with lowest distance*/
-                foreach (Point inpPoint in points)
-                {
-                    minDist = double.MaxValue;
-                    foreach (Point clustPoint in means)
+                    newClusters.Add(new List<Point>());
+                    foreach(Point p in this.points)
                     {
-                        tempDist = inpPoint.dist(clustPoint);
-
-                        if (tempDist < minDist)
+                        int minDist = minDistanceToClusters(p);
+                        if(minDist != i)
                         {
-                            minDist = tempDist;
-                            index = means.IndexOf(clustPoint);
+                            changed = true;
+                            pointToCluster[p] = minDist;
                         }
-                    }
-                    clusters[index].Add(inpPoint);
-                }
+                        else
+                        {
+                            pointToCluster[p] = i;
+                        }
 
-                /*Centroid of the clusterLists gets calculated and a new clusterPoint coordinate gets assigned*/
-                foreach (List<Point> averageList in clusters)
-                {
-                    index = clusters.IndexOf(averageList);
-                    if (averageList.Count > 0)
-                    {
-                        means[index].x = averageList.Average(a => a.x);
-                        means[index].y = averageList.Average(a => a.y);
                     }
                 }
-
-                /*Check if any change has occured to the clusterPoints since last iteration,
-                 if so do another iteration*/
-                foreach (Point point in means)
-                {
-                    if (point.CompareTo(meansNew[means.IndexOf(point)]) != 0)
-                        whilecondition = false;
-                }
-
-            } while (!whilecondition);
+                this.iteration++;
+                this.clusters = newClusters;
+            }
+            while (changed == true && this.iteration <= 100);
+            this.clusters = pointToCluster.GroupBy(x => x.Value).Select(grp => grp.Select(x => x.Key).ToList()).ToList();
 
         }
     }
