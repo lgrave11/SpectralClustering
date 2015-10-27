@@ -25,7 +25,7 @@ namespace SpectralClustering
         static void Main(string[] args)
         {
             Control.UseNativeMKL();
-            List<string> filenames = new List<string> {"Examples/nine_dots.png", "Examples/four_dots.png", "Examples/two_bananas.png", "Examples/two_dots.png" };
+            List<string> filenames = new List<string> {"Examples/nine_dots.png", "Examples/four_dots.png", "Examples/two_bananas.png", "Examples/two_dots.png", "Examples/noise.png" };
             Stopwatch sw = new Stopwatch();
             sw.Start();
             foreach (var f in filenames)
@@ -37,7 +37,7 @@ namespace SpectralClustering
                 //dbscan.Run();
                 //DrawCommunities(dbscan.clusters, f, "dbscan");
                 //Console.WriteLine("Producing clusters for {0}", f);
-                SpectralClustering sc = new SpectralClustering(lp, DistanceFunctions.RBFKernel);
+                SpectralClustering sc = new SpectralClustering(lp, DistanceFunctions.RBFKernel2, maxClusters:10);
                 sc.Run();
                 List<List<Point>> clusters = sc.clusters;
                 DrawCommunities(clusters, f, "RBFKernelEuclidean");
@@ -55,7 +55,7 @@ namespace SpectralClustering
             Bitmap bm = new Bitmap(img);
 
             int index = 0;
-            Random r = new Random();
+            Random r = new Random(1);
             var colors = Enumerable.Range(0, 360).Where((x, i) => i % 30 == 0).ToList();
             var colors2 = colors.Select(x => new Hsl { H = x, S = 100, L = 50 }).ToList();
             colors2.Insert(0, new Hsl { H = 0, S = 100, L = 0 });

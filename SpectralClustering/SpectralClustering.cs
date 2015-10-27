@@ -64,6 +64,11 @@ namespace SpectralClustering
             Matrix<double> D = Matrix<double>.Build.DenseOfDiagonalVector(dVector);
             Matrix<double> L = D - A;
             //Matrix<double> L = Matrix<double>.Build.DenseIdentity(D.RowCount, D.ColumnCount) - D.Inverse() * A;
+            /*Matrix<double> I = Matrix<double>.Build.DenseIdentity(D.RowCount, D.ColumnCount);
+            Vector<double> dVector2 = Vector<double>.Build.DenseOfEnumerable(dVector.Select(x => Math.Pow(x, -0.5)));
+            Matrix<double> D2 = Matrix<double>.Build.DenseOfDiagonalVector(dVector);
+            Matrix<double> L = I - D2 * A * D2;
+            dVector2.Select(x => Math.Pow(x, -0.5));*/
             Console.WriteLine("Finding EVD.");
             Evd<double> evd = L.Evd();
             Vector<double> eigenVector = evd.EigenVectors.Column(1);
