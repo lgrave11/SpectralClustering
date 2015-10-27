@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MathNet.Numerics;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace SpectralClustering
 {
@@ -57,6 +59,11 @@ namespace SpectralClustering
 
             // Return true if the fields match:
             return (this.x == p2.x) && (this.y == p2.y);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         public int CompareTo(object obj)

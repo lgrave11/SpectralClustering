@@ -12,7 +12,6 @@ namespace SpectralClustering
         double Eps;
         double MinPts;
         List<Point> Points;
-        int C = 0;
         Dictionary<Point, List<Point>> EpsNeighborhoods;
         public DBSCAN(List<Point> Points, double Eps, double MinPts)
         {
@@ -96,19 +95,6 @@ namespace SpectralClustering
                     cluster.Add(curr);
                     curr.clustered = true;
                 }
-                /*if (neighborPts2.Count >= this.MinPts)
-                {
-                    foreach(var p3 in neighborPts2)
-                    {
-                        //var alreadyclustered = !AlreadyClustered(p3);
-                        if (!p3.visited || p3.noise)
-                        {
-                            if (!p3.visited) neighborPts.Add(p3);
-                            cluster.Add(p3);
-                            p3.visited = true;
-                        }
-                    }
-                }*/
                 neighborPts.Remove(curr);
             }
             return cluster;
