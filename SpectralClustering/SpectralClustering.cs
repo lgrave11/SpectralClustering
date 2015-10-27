@@ -30,7 +30,7 @@ namespace SpectralClustering
 
         public List<Point> EigenDecomposition()
         {
-            Console.WriteLine("Making matrixes");
+            //Console.WriteLine("Making matrixes");
             if (this.points.Count == 1) return this.points;
             List<List<Double>> S = new List<List<double>>();
             for (int i = 0; i < this.points.Count; i++)
@@ -69,10 +69,10 @@ namespace SpectralClustering
             Matrix<double> D2 = Matrix<double>.Build.DenseOfDiagonalVector(dVector);
             Matrix<double> L = I - D2 * A * D2;
             dVector2.Select(x => Math.Pow(x, -0.5));*/
-            Console.WriteLine("Finding EVD.");
+            //Console.WriteLine("Finding EVD.");
             Evd<double> evd = L.Evd();
             Vector<double> eigenVector = evd.EigenVectors.Column(1);
-            Console.WriteLine("Adding eigen vector value to users.");
+            //Console.WriteLine("Adding eigen vector value to users.");
             for (int ev = 0; ev < eigenVector.Count; ev++)
             {
                 this.points[ev].Eigen.AddRange(evd.EigenVectors.Row(ev).Skip(1).Take(10));
@@ -93,7 +93,7 @@ namespace SpectralClustering
             var result = new List<List<Point>>();
             for (int i = 0; i < lgs.Count - 1; i++)
             {
-                Console.WriteLine("Taking {0} to {1}", lgs[i], lgs[i + 1]);
+                //Console.WriteLine("Taking {0} to {1}", lgs[i], lgs[i + 1]);
                 List<Point> tmp = new List<Point>();
 
                 int start = lgs[i].Item1;

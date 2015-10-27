@@ -25,19 +25,14 @@ namespace SpectralClustering
         static void Main(string[] args)
         {
             Control.UseNativeMKL();
-            List<string> filenames = new List<string> {"Examples/nine_dots.png", "Examples/four_dots.png", "Examples/two_bananas.png", "Examples/two_dots.png", "Examples/noise.png" };
+            List<string> filenames = new List<string> {"Examples/nine_dots.png", "Examples/four_dots.png", "Examples/two_bananas.png", "Examples/two_dots.png", "Examples/noise.png", "Examples/oldfaithful.png", "Examples/AB.png", "Examples/target.png", "Examples/target2.png"  };
             Stopwatch sw = new Stopwatch();
             sw.Start();
             foreach (var f in filenames)
             {
+                Console.WriteLine("On {0} for Spectral", f);
                 List<Point> lp = GetPoints(f);
-                //KMeans kmeans = new KMeans(lp, 2);
-                //DrawCommunities(kmeans.clusters, f, "kmeans");
-                //DBSCAN dbscan = new DBSCAN(lp, 3, 3);
-                //dbscan.Run();
-                //DrawCommunities(dbscan.clusters, f, "dbscan");
-                //Console.WriteLine("Producing clusters for {0}", f);
-                SpectralClustering sc = new SpectralClustering(lp, DistanceFunctions.RBFKernel2, maxClusters:10);
+                SpectralClustering sc = new SpectralClustering(lp, DistanceFunctions.RBFKernel, maxClusters: 2);
                 sc.Run();
                 List<List<Point>> clusters = sc.clusters;
                 DrawCommunities(clusters, f, "RBFKernelEuclidean");
@@ -46,7 +41,36 @@ namespace SpectralClustering
             }
             sw.Stop();
             TimeSpan elapsedTime = sw.Elapsed;
-            Console.WriteLine(elapsedTime);
+            Console.WriteLine("Spectral: {0}", elapsedTime);
+
+            sw = new Stopwatch();
+            sw.Start();
+            foreach (var f in filenames)
+            {
+                Console.WriteLine("On {0} for DBSCAN", f);
+                List<Point> lp = GetPoints(f);
+                //KMeans kmeans = new KMeans(lp, 2);
+                //DrawCommunities(kmeans.clusters, f, "kmeans");
+                DBSCAN dbscan = new DBSCAN(lp, 3, 3);
+                dbscan.Run();
+                DrawCommunities(dbscan.clusters, f, "dbscan");
+            }
+            sw.Stop();
+            elapsedTime = sw.Elapsed;
+            Console.WriteLine("DBSCAN: {0}", elapsedTime);
+
+            sw = new Stopwatch();
+            sw.Start();
+            foreach (var f in filenames)
+            {
+                Console.WriteLine("On {0} for KMeans", f);
+                List<Point> lp = GetPoints(f);
+                KMeans kmeans = new KMeans(lp, 2);
+                DrawCommunities(kmeans.clusters, f, "kmeans");
+            }
+            sw.Stop();
+            elapsedTime = sw.Elapsed;
+            Console.WriteLine("KMeans: {0}", elapsedTime);
         }
 
         public static void DrawCommunities(List<List<Point>> lp, string filename, string prefix)
