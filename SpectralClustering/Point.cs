@@ -16,6 +16,7 @@ namespace SpectralClustering
         public int matrix_x;
         public int matrix_y;
         public List<double> Eigen;
+        public double eigenValue;
         public double clusternum;
         public int clusterId;
         public bool visited;

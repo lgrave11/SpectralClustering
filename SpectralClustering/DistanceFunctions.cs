@@ -19,6 +19,10 @@ namespace SpectralClustering
         {
             return Math.Exp(-(Math.Pow(p1.manhattan_dist(p2), 2)) / (2 * Math.Pow(0.5, 2)));
         }
+        public static double SquaredEuclideanDistance(Point p1, Point p2)
+        {
+            return -Math.Pow(p1.dist(p2), 2);
+        }
         public static double EuclideanDistance(Point p1, Point p2)
         {
             return -p1.dist(p2);
@@ -27,7 +31,9 @@ namespace SpectralClustering
         {
             double[] p1a = { p1.x, p1.y };
             double[] p2a = { p2.x, p2.y };
-            return Math.Exp(-(Math.Pow(Distance.Euclidean(p1a, p2a), 2) / (2 * Math.Pow(0.5, 2))));
+            var res = Distance.Cosine(p1a, p2a);
+            res = double.IsNaN(res) ? 0f : res;
+            return Math.Exp(-(Math.Pow(res, 2)) / (2 * Math.Pow(0.5, 2)));
         }
     }
 }

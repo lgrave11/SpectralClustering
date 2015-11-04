@@ -13,7 +13,7 @@ namespace SpectralClustering
         double MinPts;
         List<Point> Points;
         Dictionary<Point, List<Point>> EpsNeighborhoods;
-        public DBSCAN(List<Point> Points, double Eps, double MinPts)
+        public DBSCAN(List<Point> Points, double Eps=3, double MinPts=3)
         {
             this.Points = Points;
             this.Eps = Eps;
