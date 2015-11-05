@@ -71,27 +71,17 @@ namespace SpectralClustering
             {
                 changed = false;
                 updateCentroids();
-                List<List<Point>> newClusters = new List<List<Point>>();
-                for(int i = 0; i < this.K; i++)
+                foreach(Point p in this.points)
                 {
-                    newClusters.Add(new List<Point>());
-                    foreach(Point p in this.points)
+                    int minDist = minDistanceToClusters(p);
+                    if(minDist != pointToCluster[p])
                     {
-                        int minDist = minDistanceToClusters(p);
-                        if(minDist != i)
-                        {
-                            changed = true;
-                            pointToCluster[p] = minDist;
-                        }
-                        else
-                        {
-                            pointToCluster[p] = i;
-                        }
-
+                        changed = true;
+                        pointToCluster[p] = minDist;
                     }
+
                 }
                 this.iteration++;
-                this.clusters = newClusters;
             }
             while (changed == true && this.iteration <= 100);
             this.clusters = pointToCluster.GroupBy(x => x.Value).Select(grp => grp.Select(x => x.Key).ToList()).ToList();

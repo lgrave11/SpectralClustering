@@ -47,9 +47,9 @@ namespace SpectralClustering
                     eigenVectors.Add(tmp);
                     index++;
                 }
-                eigenVectors = eigenVectors.OrderBy(x => x.Item1).Take(k).ToList();
+                var eigenVectors2 = eigenVectors.OrderBy(x => x.Item1).Take(k).ToList();
                 index = 0;
-                var tmp2 = eigenVectors.Select(x => x.Item2).ToArray();
+                var tmp2 = eigenVectors2.Select(x => x.Item2).ToArray();
                 eigenVectorMatrix = Matrix<double>.Build.DenseOfColumnVectors(tmp2);
                 // Cluster and shit
                 KMeansSpectral kms = new KMeansSpectral(eigenVectorMatrix, this.points, this.k);
@@ -103,8 +103,8 @@ namespace SpectralClustering
             Matrix<double> L;
             if (useKMeans)
             {
-                //L = D - A;
-                L = I - D.Inverse() * A;
+                L = D - A;
+                //L = I - D.Inverse() * A;
                 //Vector<double> dVector2 = Vector<double>.Build.DenseOfEnumerable(dVector.Select(x => Math.Pow(x, -0.5)));
                 //Matrix<double> D2 = Matrix<double>.Build.DenseOfDiagonalVector(dVector);
                 //L = I - D2 * A * D2;

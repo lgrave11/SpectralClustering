@@ -25,20 +25,32 @@ namespace SpectralClustering
         static void Main(string[] args)
         {
             Control.UseNativeMKL();
-            List<string> filenames = new List<string> {"Examples/two_bananas.png", "Examples/two_dots.png", "Examples/oldfaithful.png", "Examples/AB.png" };
+            List<string> filenames = new List<string> {//"Examples/a.png",
+                                                       //"Examples/AB.png",
+                                                       //"Examples/aimdisk.png",
+                                                       //"Examples/four_dots.png",
+                                                       //"Examples/nine_dots.png",
+                                                       //"Examples/noise.png",
+                                                       //"Examples/oldfaithful.png",
+                                                       "Examples/shapes.png",
+                                                       //"Examples/target.png",
+                                                       //"Examples/target2.png",
+                                                       //"Examples/two_bananas.png",
+                                                       //"Examples/two_dots.png",
+                                                      };
             Stopwatch sw = new Stopwatch();
             sw.Start();
             foreach (var f in filenames)
             {
                 Console.WriteLine("On {0} for Spectral", f);
                 List<Point> lp1 = GetPoints(f);
-                SpectralClustering sc = new SpectralClustering(lp1, DistanceFunctions.RBFKernel, k: 2, useKMeans: true);
+                SpectralClustering sc = new SpectralClustering(lp1, DistanceFunctions.SquaredEuclideanDistance, k: 6, useKMeans: true);
                 sc.Run();
-                DrawCommunities(sc.clusters, f, "KMeans");
-                var lp2 = GetPoints(f);
-                SpectralClustering sc2 = new SpectralClustering(lp2, DistanceFunctions.RBFKernel, maxClusters: 2);
-                sc2.Run();
-                DrawCommunities(sc2.clusters, f, "Normal");
+                DrawCommunities(sc.clusters, f, "SED");
+                //var lp2 = GetPoints(f);
+                //SpectralClustering sc2 = new SpectralClustering(lp2, DistanceFunctions.RBFKernel);
+                //sc2.Run();
+                //DrawCommunities(sc2.clusters, f, "RBF");
                 //var lp2 = GetPoints(f);
                 //SpectralClustering sc2 = new SpectralClustering(lp2, DistanceFunctions.SquaredEuclideanDistance, maxClusters: 2);
                 //sc2.Run();
@@ -48,7 +60,7 @@ namespace SpectralClustering
             TimeSpan elapsedTime = sw.Elapsed;
             Console.WriteLine("Spectral: {0}", elapsedTime);
 
-            /*sw = new Stopwatch();
+            sw = new Stopwatch();
             sw.Start();
             foreach (var f in filenames)
             {
@@ -70,12 +82,12 @@ namespace SpectralClustering
             {
                 Console.WriteLine("On {0} for KMeans", f);
                 List<Point> lp = GetPoints(f);
-                KMeans kmeans = new KMeans(lp, 6);
+                KMeans kmeans = new KMeans(lp, 2);
                 DrawCommunities(kmeans.clusters, f, "kmeans");
             }
             sw.Stop();
             elapsedTime = sw.Elapsed;
-            Console.WriteLine("KMeans: {0}", elapsedTime);*/
+            Console.WriteLine("KMeans: {0}", elapsedTime);
         }
 
         public static void DrawCommunities(List<List<Point>> lp, string filename, string prefix)
@@ -93,16 +105,16 @@ namespace SpectralClustering
             {
                 //var value = new Hsl { H = r.Next(0, 360), S = r.Next(50, 100), L = r.Next(40, 60) };
                 //var value = colors2[index];
-                /*Hsl value = null;
+                Hsl value = null;
                 try {
                     value = colors3[lp.IndexOf(community)];
                 }
                 catch (Exception e)
                 {
                     value = new Hsl { H = r.Next(0, 360), S = r.Next(50, 100), L = r.Next(40, 60) };
-                }*/
+                }
 
-                var value = colors2[lp.IndexOf(community)];
+                //var value = colors2[lp.IndexOf(community)];
 
                 var rgb = value.To<Rgb>();
                 Color c = Color.FromArgb(255, (int)rgb.R, (int)rgb.G, (int)rgb.B);
