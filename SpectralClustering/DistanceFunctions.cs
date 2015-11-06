@@ -11,9 +11,15 @@ namespace SpectralClustering
 {
     public static class DistanceFunctions
     {
+        public static double RBFKernelVectors(Vector<double> p1, Vector<double> p2)
+        {
+            var euc = Distance.Euclidean(p1, p2);
+            return Math.Exp(-(Math.Pow(euc, 2)) / (2 * Math.Pow(0.5, 2)));
+        }
         public static double RBFKernel(Point p1, Point p2)
         {
-            return Math.Exp(-(Math.Pow(p1.dist(p2), 2)) / (2 * Math.Pow(0.5, 2)));
+            var euc = p1.dist(p2);
+            return Math.Exp(-(Math.Pow(euc, 2)) / (2 * Math.Pow(0.5, 2)));
         }
         public static double RBFKernel2(Point p1, Point p2)
         {

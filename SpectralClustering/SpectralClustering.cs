@@ -124,12 +124,31 @@ namespace SpectralClustering
             else
             {
                 L = D - A;
+                //L = D.Inverse() * A;
+                //Vector<double> dVector2 = Vector<double>.Build.DenseOfEnumerable(dVector.Select(x => Math.Pow(x, -0.5)));
+                //Matrix<double> D2 = Matrix<double>.Build.DenseOfDiagonalVector(dVector2);
+                //L = I - D2 * A * D2;
             }
 
             Evd<double> evd = L.Evd();
             Vector<double> eigenVector = evd.EigenVectors.Column(1);
             List<double> eigenValues = evd.EigenValues.Select(x => x.Real).ToList();
 
+            List<Tuple<Double, Vector<double>>> eigenVectors = new List<Tuple<double, Vector<double>>>();
+            int index = 0;
+            foreach (var v in evd.EigenVectors.EnumerateColumns())
+            {
+                if (index == 0)
+                {
+                    index++;
+                    continue;
+                }
+                Tuple<Double, Vector<double>> tmp = new Tuple<double, Vector<double>>(eigenValues[index], v);
+                eigenVectors.Add(tmp);
+                index++;
+            }
+            //var eigenVectors2 = eigenVectors.OrderByDescending(x => x.Item1).Select(x => x.Item2).First();
+            var eigenVectors2 = eigenVectors.Skip(1).Select(x => x.Item2).First();
             Chart c = new Chart();
             c.ChartAreas.Add("EigenValues");
             
@@ -137,7 +156,7 @@ namespace SpectralClustering
             c.Series["bla"].ChartType = SeriesChartType.Point;
             c.Series["bla"].Color = Color.Black;
             double xIndex = 0;
-            foreach(var p in eigenVector.OrderByDescending(x=> x))
+            foreach(var p in eigenVectors2.OrderByDescending(x=> x))
             {
                 c.Series["bla"].Points.AddXY(xIndex++, p);
             }
@@ -147,7 +166,8 @@ namespace SpectralClustering
             this.evd = evd;
             for (int ev = 0; ev < eigenVector.Count; ev++)
             {
-                this.points[ev].Eigen.AddRange(evd.EigenVectors.Row(ev).Skip(1).Take(k));
+                this.points[ev].Eigen.Add(eigenVector[ev]);
+                //this.points[ev].Eigen.AddRange(evd.EigenVectors.Row(ev).Skip(1).Take(k));
             }
             var sortedItemList = this.points.OrderBy(x => x.Eigen[0]).ToList();
             
@@ -164,7 +184,7 @@ namespace SpectralClustering
             var result = new List<List<Point>>();
             for (int i = 0; i < lgs.Count - 1; i++)
             {
-                //Console.WriteLine("Taking {0} to {1}", lgs[i], lgs[i + 1]);
+                Console.WriteLine("Taking {0} to {1}", lgs[i], lgs[i + 1]);
                 List<Point> tmp = new List<Point>();
 
                 int start = lgs[i].Item1;
