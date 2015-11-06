@@ -25,18 +25,19 @@ namespace SpectralClustering
         static void Main(string[] args)
         {
             Control.UseNativeMKL();
-            List<string> filenames = new List<string> {//"Examples/a.png",
-                                                       //"Examples/AB.png",
-                                                       //"Examples/aimdisk.png",
-                                                       //"Examples/four_dots.png",
-                                                       //"Examples/nine_dots.png",
-                                                       //"Examples/noise.png",
-                                                       //"Examples/oldfaithful.png",
-                                                       "Examples/shapes.png",
+            List<string> filenames = new List<string> {"Examples/tiny.png",
+                                                       //"Examples/a.png",
+                                                       "Examples/AB.png",
+                                                       "Examples/aimdisk.png",
+                                                       "Examples/four_dots.png",
+                                                       "Examples/nine_dots.png",
+                                                       "Examples/noise.png",
+                                                       "Examples/oldfaithful.png",
                                                        //"Examples/target.png",
                                                        //"Examples/target2.png",
-                                                       //"Examples/two_bananas.png",
-                                                       //"Examples/two_dots.png",
+                                                       "Examples/two_bananas.png",
+                                                       "Examples/two_dots.png",
+                                                       "Examples/shapes.png",
                                                       };
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -44,11 +45,11 @@ namespace SpectralClustering
             {
                 Console.WriteLine("On {0} for Spectral", f);
                 List<Point> lp1 = GetPoints(f);
-                SpectralClustering sc = new SpectralClustering(lp1, DistanceFunctions.SquaredEuclideanDistance, k: 6, useKMeans: true);
+                SpectralClustering sc = new SpectralClustering(lp1, DistanceFunctions.RBFKernel);
                 sc.Run();
-                DrawCommunities(sc.clusters, f, "SED");
+                DrawCommunities(sc.clusters, f, "RBF");
                 //var lp2 = GetPoints(f);
-                //SpectralClustering sc2 = new SpectralClustering(lp2, DistanceFunctions.RBFKernel);
+                //SpectralClustering sc2 = new SpectralClustering(lp2, DistanceFunctions.RBFKernel, maxClusters: 9);
                 //sc2.Run();
                 //DrawCommunities(sc2.clusters, f, "RBF");
                 //var lp2 = GetPoints(f);
@@ -60,7 +61,7 @@ namespace SpectralClustering
             TimeSpan elapsedTime = sw.Elapsed;
             Console.WriteLine("Spectral: {0}", elapsedTime);
 
-            sw = new Stopwatch();
+            /*sw = new Stopwatch();
             sw.Start();
             foreach (var f in filenames)
             {
@@ -82,12 +83,12 @@ namespace SpectralClustering
             {
                 Console.WriteLine("On {0} for KMeans", f);
                 List<Point> lp = GetPoints(f);
-                KMeans kmeans = new KMeans(lp, 2);
+                KMeans kmeans = new KMeans(lp, 6);
                 DrawCommunities(kmeans.clusters, f, "kmeans");
             }
             sw.Stop();
             elapsedTime = sw.Elapsed;
-            Console.WriteLine("KMeans: {0}", elapsedTime);
+            Console.WriteLine("KMeans: {0}", elapsedTime);*/
         }
 
         public static void DrawCommunities(List<List<Point>> lp, string filename, string prefix)

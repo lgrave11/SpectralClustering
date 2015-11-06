@@ -128,6 +128,7 @@ namespace SpectralClustering
         public KMeansSpectral(Matrix<double> Y, List<Point> points, int K)
         {
             this.Y = Y;
+            this.Y = Y.NormalizeRows(2.0f);
             this.points = points;
             this.rows = new List<Vector<double>>();
             this.map = new Dictionary<Vector<double>, Point>();

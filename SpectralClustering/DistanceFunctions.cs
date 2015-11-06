@@ -21,7 +21,7 @@ namespace SpectralClustering
         }
         public static double SquaredEuclideanDistance(Point p1, Point p2)
         {
-            return -Math.Pow(p1.dist(p2), 2);
+            return -Math.Pow(Math.Sqrt(Math.Pow(p1.x - p2.x, 2) + Math.Pow(p1.y - p2.y, 2)), 2);
         }
         public static double EuclideanDistance(Point p1, Point p2)
         {
