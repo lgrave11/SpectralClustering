@@ -54,6 +54,7 @@ namespace SpectralClustering
                 eigenVectorMatrix = Matrix<double>.Build.DenseOfColumnVectors(tmp2);
                 // Cluster and shit
                 KMeansSpectral kms = new KMeansSpectral(eigenVectorMatrix, this.points, this.k);
+                //KMeans2 kms = new KMeans2(eigenVectorMatrix, this.points, this.k);
                 clusters.AddRange(kms.pointClusters);
                 
             }
@@ -116,7 +117,7 @@ namespace SpectralClustering
             if (useKMeans)
             {
                 L = D - A;
-                //L = I - D.Inverse() * A;
+                //L = D.Inverse() * A;
                 //Vector<double> dVector2 = Vector<double>.Build.DenseOfEnumerable(dVector.Select(x => Math.Pow(x, -0.5)));
                 //Matrix<double> D2 = Matrix<double>.Build.DenseOfDiagonalVector(dVector2);
                 //L = I - D2 * A * D2;

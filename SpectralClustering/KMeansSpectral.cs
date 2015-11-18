@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Drawing;
+using OxyPlot;
+using OxyPlot.WindowsForms;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+using ColorMine.ColorSpaces;
+
 
 namespace SpectralClustering
 {
@@ -41,24 +47,55 @@ namespace SpectralClustering
             return mindist;
         }
 
+        public void plotCurrent(int iteration)
+        {
+            var myModel = new PlotModel { Title = "Example 1" };
+            var scatterSeries = new ScatterSeries { MarkerType = MarkerType.Circle};
+
+            for (int i = 0; i < K; i++)
+            {
+                var currentColorValue = new Hsl { H = i*50, S = 50, L = 50 };
+                var clus = vectorToCluster.Where(x => x.Value == i).Select(x => x.Key).ToList();
+                foreach (var v in clus)
+                {
+                    scatterSeries.Points.Add(new ScatterPoint(v[0], v[1], 1, i));
+                }
+            }
+
+            int index = 0;
+            foreach(var v in this.centroids)
+            {
+                scatterSeries.Points.Add(new ScatterPoint(v[0], v[1], 3, index));
+                index++;
+            }
+            myModel.Axes.Add(new LinearColorAxis { Position = AxisPosition.None, Minimum = 0.1, Maximum = 0.9, HighColor = OxyColors.Red, LowColor = OxyColors.Black });
+            myModel.Series.Add(scatterSeries);
+            PngExporter.Export(myModel, String.Format("{0}-plot.png", iteration), 800, 500);
+        }
+
         public void updateCentroids()
         {
-            for(int i = 0; i < K; i++)
+            for (int i = 0; i < K; i++)
             {
                 var clus = vectorToCluster.Where(x => x.Value == i).Select(x => x.Key).ToList();
-                Vector<double> v = clus.First();
-                foreach(var v2 in clus.Skip(1))
+                Vector<double> v = Vector<double>.Build.DenseOfVector(clus.First());
+                foreach (var v2 in clus.Skip(1))
                 {
-                    v.Add(v2);
+                    int index = 0;
+                    for (index = 0; index < v.Count; index++)
+                    {
+                        v[index] += v2[index];
+                    }
                 }
-                v = v / clus.Count;
-                this.centroids[i] = v;
+                v = Vector<double>.Build.Dense(v.Select(x => x / clus.Count).ToArray());
             }
+            
         }
 
         public void InitialCentroids()
         {
             Random r = new Random(1);
+            //var randoms = rows.OrderBy(x => r.Next()).Distinct().Take(K).ToList();
             var randoms = rows.OrderBy(x => r.Next()).Distinct().Take(K).ToList();
             int j = 0;
             foreach (var v in randoms)
@@ -138,6 +175,13 @@ namespace SpectralClustering
                 this.rows.Add(v);
                 this.map[v] = this.points[index++];
             }
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(String.Format("{0}-testkmeans.txt", points.Count)))
+            {
+                foreach (var v in this.rows)
+                {
+                        file.WriteLine("{0},{1}", v[0].ToString(System.Globalization.CultureInfo.InvariantCulture), v[1].ToString(System.Globalization.CultureInfo.InvariantCulture));
+                }
+            }
 
             this.K = K;
             this.vectorToCluster = new Dictionary<Vector<double>, int>();
@@ -157,6 +201,7 @@ namespace SpectralClustering
             bool changed = false;
             do
             {
+                plotCurrent(iteration);
                 changed = false;
                 updateCentroids();
                 List<int> mindists = new List<int>();
@@ -171,9 +216,6 @@ namespace SpectralClustering
                     }
                     
                 }
-                var bla = mindists.GroupBy(x => x).Select(item => new { Number = item.Key, Total = item.Count() }).ToList();
-                mindists = new List<int>();
-                var blah = vectorToCluster.Select(x => x.Value).GroupBy(i => i).Select(item => new { Number = item.Key, Total = item.Count() }).ToList();
                 this.iteration++;
             }
             while (changed == true && this.iteration <= 100);

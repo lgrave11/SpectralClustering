@@ -25,33 +25,29 @@ namespace SpectralClustering
         static void Main(string[] args)
         {
             Control.UseNativeMKL();
-            List<string> filenames = new List<string> {"Examples/tiny.png",
-                                                       "Examples/a.png",
-                                                       "Examples/AB.png",
-                                                       "Examples/aimdisk.png",
-                                                       "Examples/four_dots.png",
-                                                       "Examples/nine_dots.png",
-                                                       "Examples/noise.png",
-                                                       "Examples/oldfaithful.png",
-                                                       "Examples/target.png",
-                                                       "Examples/target2.png",
-                                                       "Examples/two_bananas.png",
-                                                       "Examples/two_dots.png",
-                                                       "Examples/shapes.png",
-                                                      };
+            Dictionary<String, int> filenames = new Dictionary<string, int>
+            {
+                { "Examples/example.png", 2},
+                { "Examples/bananas.png", 2},
+                { "Examples/noise.png", 2},
+                { "Examples/fourdots.png", 4},
+                { "Examples/ninedots.png", 9},
+                { "Examples/twodots.png", 2},
+            };
+            //List<string> filenames = new List<string> { "Examples/example.png", "Examples/bananas.png", "Examples/fourdots.png", "Examples/ninedots.png", "Examples/twodots.png" };
             Stopwatch sw = new Stopwatch();
             sw.Start();
             foreach (var f in filenames)
             {
                 Console.WriteLine("On {0} for Spectral", f);
-                var lp1 = GetPoints(f);
-                List<Vector<double>> lp1vectors = lp1.Select(x => Vector<double>.Build.Dense(new double[] { x.x, x.y })).ToList();
-                SpectralClusteringVectors sc = new SpectralClusteringVectors(lp1vectors, DistanceFunctions.RBFKernelVectors);
-                sc.Run();
-                DrawClusters(sc.clusters, f, "RBFVectors");
-                SpectralClustering sc2 = new SpectralClustering(lp1, DistanceFunctions.RBFKernel);
+                var lp1 = GetPoints(f.Key);
+                //List<Vector<double>> lp1vectors = lp1.Select(x => Vector<double>.Build.Dense(new double[] { x.x, x.y })).ToList();
+                //SpectralClusteringVectors sc = new SpectralClusteringVectors(lp1vectors, DistanceFunctions.RBFKernelVectors);
+                //sc.Run();
+                //DrawClusters(sc.clusters, f.Key, "RBFVectors");
+                SpectralClustering sc2 = new SpectralClustering(lp1, DistanceFunctions.RBFKernel, k: f.Value, useKMeans: true);
                 sc2.Run();
-                DrawCommunities(sc2.clusters, f, "RBFPoints");
+                DrawCommunities(sc2.clusters, f.Key, "RBFPoints");
                 //var lp2 = GetPoints(f);
                 //SpectralClustering sc2 = new SpectralClustering(lp2, DistanceFunctions.SquaredEuclideanDistance, maxClusters: 2);
                 //sc2.Run();
