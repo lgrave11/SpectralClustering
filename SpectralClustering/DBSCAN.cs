@@ -12,6 +12,7 @@ namespace SpectralClustering
         double Eps;
         double MinPts;
         List<Point> Points;
+        Dictionary<Point, Dictionary<Point, Double>> memoizedDistance;
         Dictionary<Point, List<Point>> EpsNeighborhoods;
         public DBSCAN(List<Point> Points, double Eps=3, double MinPts=3)
         {
@@ -20,6 +21,7 @@ namespace SpectralClustering
             this.MinPts = MinPts;
             this.clusters = new List<List<Point>>();
             this.EpsNeighborhoods = new Dictionary<Point, List<Point>>();
+            this.memoizedDistance = new Dictionary<Point, Dictionary<Point, double>>();
             PrecalculateEpsNeighborhoods();
         }
 
@@ -27,11 +29,30 @@ namespace SpectralClustering
         {
             foreach(var p in this.Points)
             {
+                var testp = this.memoizedDistance.ContainsKey(p);
+                if (!testp)
+                {
+                    this.memoizedDistance.Add(p, new Dictionary<Point, double>());
+                }
                 List<Point> epsNeighborhood = new List<Point>();
                 foreach (var p2 in this.Points)
                 {
                     if (p == p2) continue;
-                    if (p.dist(p2) <= this.Eps)
+                    
+                    var testp2 = this.memoizedDistance.ContainsKey(p2);
+                    if (!testp2)
+                    {
+                        this.memoizedDistance.Add(p2, new Dictionary<Point, double>());
+                    }
+                    if (!this.memoizedDistance[p].ContainsKey(p2) || !this.memoizedDistance[p2].ContainsKey(p))
+                    {
+                        var res = p.dist(p2);
+                        this.memoizedDistance[p].Add(p2, res);
+                        this.memoizedDistance[p2].Add(p, res);
+                    }
+                    
+
+                    if (this.memoizedDistance[p][p2] <= this.Eps)
                     {
                         epsNeighborhood.Add(p2);
                     }
